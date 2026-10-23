@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SUPERSET_VERSION: ${SUPERSET_VERSION}
+        AIRFLOW_VERSION: ${AIRFLOW_VERSION}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    image: ${APP_IMAGE_NAME:-roza-khutor}:${AIRFLOW_VERSION}
+    container_name: roza_khutor
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}
+      AIRFLOW_CONN_ROZA_POSTGRES: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://localhost:8080/execution/
+      SUPERSET_CONFIG_PATH: /app/superset_config.py
+    ports:
+      - "${AIRFLOW_WEB_PORT}:8080"
+      - "${SUPERSET_WEB_PORT}:8088"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - superset-home:/app/superset_home
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  superset-home:
